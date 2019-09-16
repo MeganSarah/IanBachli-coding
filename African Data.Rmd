@@ -1,11 +1,12 @@
 ---
-title: "IanBachli - Coding Exercise"
-author: Ian Bachli
+title: "IanBachli - Coding Exercise, Updated for Tidyverse by Megan Beaudry"
+author: Ian Bachli & Megan Beaudry
 Date: 08/27/2019
+Update 2: 9-16-19
 output:
-  word_document: default
   html_document:
     df_print: paged
+  word_document: default
 ---
 
 ```{r}
@@ -16,6 +17,25 @@ library(dslabs)
 data(gapminder)
 ```
 
+#For the tidyverse exercise we need first install packages as we have not had them previously installed
+#load the libraries for tidyverse and skimr
+```{r}
+library(tidyverse)
+library(skimr)
+library(dplyr)
+```
+
+#Now we want to take glimpse of the data. We can do this using the glimpse function to look at the gapminder dataset
+```{r}
+glimpse(gapminder)
+```
+#the glimpse function tells us we have 10,545 observations for 9 variables.
+
+#skim function from dyplry to look at the gapminder data
+```{r}
+skim(gapminder)
+```
+#the purpose of skim is to generate a summary of the data. It also provides with the number of observations and variables. However, it gives us further information on the missing values
 
 ```{r}
 #To view the the information in the gapminder data set, use the following R functions: help, str, summary, and class. Below is a summary of each.
@@ -64,6 +84,20 @@ str(infant_vs_life_africa)
 #Summary gives a quick glance of min, max, median, and mean for both variables. Note there are 226 NA records indicated for infantmortality.
 summary(infant_vs_life_africa)
 ```
+#Extract only the african countries from the gapminder dataset using dplyr functions
+#convert the data to a tibble to view
+```{r}
+africancountries <- filter(gapminder, continent == "Africa")
+africatibble <- tibble(africancountries)
+africatibble
+```
+#Now we want to select for the following variables: infant_mortality, life_expectancy, population, and country.
+```{r}
+africa_plot_data <- select(africancountries, life_expectancy, infant_mortality, population, country)
+africa_plot_data
+```
+#Result in 2,907 observations and only the four variables we selected for
+#Another option for selecting this would be to place a "-" sympbol in front of each of the variables we did NOT WANT, however in this case it was easier to list the ones we did want
 
 ```{r}
 #Create an object containing population and life_expectancy for africadata.
@@ -96,6 +130,45 @@ logtenpop_vs_life_africa <- data.frame( log10population = logten_pop_africa, lif
 plot(logtenpop_vs_life_africa)
 #The plot shows a distinct scattering of "streaks" of data. The individual streaks typically move in a positive trend illistrating a positve correlation between increased population size and increased life expectancy. The "streaks" seen in the data likely represent different contries within the continent of Africa measured over time. 
 ```
+##Make 2 plots using ggplot for life expectancy as a function of infant mortality and population. Also, give each country a separate color in the plot.
+#In order to figure out which plotting functions to use i went to this page: https://ggplot2.tidyverse.org/reference/translate_qplot_ggplot.html. It provides useful comparisons
+##They explained that qplot is best for interactive use or quicker plots
+##ggplot may be more effective for complex figures 
+
+#First plot: Infant mortality vs life expectancy (x vs y)
+#synatx - x verse y function, color defines the data point color, and data assigns the object. Labs fucntion gives us the labels, the them function setts the formating 
+```{r}
+help("ggplot2")
+qplot(infant_mortality, life_expectancy, color= country, data = africa_plot_data) + labs(y = "Life Expectancy", x = "Infant Mortality") + theme(legend.key.size = unit(0.2, "cm"), legend.key.width = unit(0.1, "cm"))
+```
+#This shows the same negative correlation that was seen previously, however it is color coded!
+#Warning removal of 226 values is consistent with the number of NA values for infant mortality
+
+#Plot 2 - population vs life expectancy
+#Population NEEDS to be set to log scale
+```{r}
+qplot(population, life_expectancy, color = country, data = africa_plot_data) + labs(y = "Life Expectancy", x = "Population (log10)") + scale_x_log10() + theme(legend.key.size = unit(0.2, "cm"), legend.key.width = unit(0.1, "cm"))
+```
+#Here we see the same "smears" we saw previously, but again it is color coded. 
+#We can improvise from this graph that as life expectancy increases population also increases 
+#Warning removal of 51 rows is consistent with the number of NA values for population
+
+#Plot 3
+#Write code that uses the gapminder object, pulls out data for africa and year 2000 and creates a ggplot for life_expectancy as a function of infant_mortality, with a linear model fit added.
+#First, we need to filter out the variables we want from the gapminder dataset
+```{r}
+africa2000 <- filter(gapminder, continent == "Africa" & year == 2000)
+```
+#Now plot infant mortality vs life expectancy with linear fit model
+#ggplot function we will define africa2000 as the data and set the axes
+#geopointd defines the scatterplot
+#stat_smooth applies the linear fit with "lm" being the method used
+#col sets the color of the of the regression line
+#se applies or removes the standard error
+```{r}
+ggplot(africa2000, aes(x = infant_mortality, y = life_expectancy, color = country)) + geom_point() + stat_smooth(method = "lm", col = "red", se = FALSE) + labs(y = "Life Expectancy", x = "Infant Mortality") + theme(legend.key.size = unit(0.2, "cm"), legend.key.width = unit(0.1, "cm"))
+```
+#this plot reflects a distinct negative correlation between life expectancy and infant mortality
 
 ```{r}
 #Determine which years have missing data for infant mortality.
